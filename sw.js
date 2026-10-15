@@ -1,5 +1,5 @@
-// Service worker del calcolatore antivibranti G4 v3.10 (scritto da build.py): pagina e icone in cache, aggiornamento quando c'è rete.
-const CACHE = 'g4calc-v3.10';
+// Service worker del calcolatore antivibranti G4 v3.11 (scritto da build.py): pagina e icone in cache, aggiornamento quando c'è rete.
+const CACHE = 'g4calc-v3.11';
 const FILE = ['./', './index.html', './manifest.webmanifest', './icone/icon-192.png', './icone/icon-512.png', './icone/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
