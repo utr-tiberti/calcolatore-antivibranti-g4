@@ -7,6 +7,12 @@
 <meta name="theme-color" content="#24221f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icone/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icone/icon-192.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calcolatore antivibranti G4">
+<meta property="og:description" content="Carico per punto, piastre isolanti, elementi di livellamento e supporti pneumatici: scelta e verifica dal catalogo. Funziona anche senza rete.">
+<meta property="og:image" content="https://utr-tiberti.github.io/calcolatore-antivibranti-g4/icone/icon-512.png">
+<meta property="og:url" content="https://utr-tiberti.github.io/calcolatore-antivibranti-g4/">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Carico per punto, piastre isolanti, elementi di livellamento e supporti pneumatici: scelta e verifica dal catalogo.">
@@ -1599,6 +1605,7 @@ function autotest(){
   // v3.10: spiegazioni di testa chiuse, con commento breve e invito ad aprirle
   t('sei spiegazioni chiuse con commento breve e testo completo dentro', (() => { const d = [...document.querySelectorAll('.sez-h details.lead')]; return d.length === 6 && d.every(x => !x.open && x.querySelector('summary') && x.querySelector('summary').textContent.trim().length > 40 && x.querySelector('summary').textContent.trim().length < 170 && x.querySelector('p').textContent.length > 100); })());
   t('testata e piè di pagina con versione e firma UTR TechLab', $('mh_ver').textContent === VERSIONE_APP && /UTR TechLab/.test(document.querySelector('.mh-title').textContent) && /UTR TechLab/.test(document.querySelector('footer').textContent));
+  t('icona G4 della scheda e anteprima del link (og:image) presenti', !!document.querySelector('link[rel=icon]') && /icon-512\.png$/.test((document.querySelector('meta[property="og:image"]') || {}).content || ''));
   // giro 3: nuovo caso senza voci spuntate
   nuovoCaso(); t('nuovo caso: niente nel riepilogo finché non si sceglie', !$('r_inc_piastra').checked && /NESSUNA SOLUZIONE SCELTA/.test(testoRiepilogo()));
   ricalcola();
