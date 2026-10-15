@@ -53,7 +53,7 @@ main,.sez,.colonne > *{min-width:0}
 h1{font-family:var(--cond);font-weight:800;font-size:1.3rem;line-height:1.05;margin:0;letter-spacing:-.01em;text-transform:uppercase}
 .mh-title p{margin:3px 0 0;font-size:.8rem;font-weight:500;color:var(--on-graphite-dim);line-height:1.3}
 .mh-title p.firma{font-family:var(--cond);font-weight:600;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--on-graphite-dim)}
-@media (max-width:639px){ .mh-title p{display:none} .mh-title p.firma{display:block} .mh{column-gap:24px} .logo{height:50px} }
+@media (max-width:639px){ .mh-title{text-align:center;align-self:center} .mh-title p{display:none} .mh-title p.firma{display:block;margin-top:4px} .mh{column-gap:16px} .logo{height:50px} }
 .mh-readout{grid-area:readout;display:flex;align-items:baseline;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--graphite-2)}
 .mh-readout .k{font-family:var(--cond);font-weight:600;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:var(--on-graphite-dim)}
 .mh-readout .v{font-family:var(--mono);font-weight:800;font-size:1.5rem;margin-left:auto;color:var(--accent)}
@@ -1237,6 +1237,14 @@ async function copiaRiepilogo(){
   try{ await navigator.clipboard.writeText(t); $('r_esito').textContent = 'Testo copiato: incollalo in una mail o in WhatsApp.' + avv; }
   catch(e){ const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); $('r_esito').textContent = 'Testo copiato.' + avv; }catch(e2){ $('r_esito').textContent = 'Copia non riuscita: seleziona il testo a destra e copialo a mano.'; } ta.remove(); }
 }
+// stampa: su iPhone/iPad window.print() non apre nulla nell'app installata: si passa dal foglio Condividi (Stampa / Salva su File)
+function stampaRiepilogo(){
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if(!ios){ window.print(); return; }
+  $('r_esito').textContent = 'Su iPhone e iPad la stampa passa dal foglio Condividi: scegli «Stampa» (poi pizzica l\'anteprima per averla in PDF) oppure «Salva su File».';
+  if(navigator.share) navigator.share({title: 'Calcolatore antivibranti', text: testoRiepilogo()}).catch(() => {});
+  else window.print();
+}
 async function condividiRiepilogo(){
   const t = testoRiepilogo();
   if(navigator.share){ try{ await navigator.share({title: 'Calcolatore antivibranti', text: t}); $('r_esito').textContent = 'Condiviso.'; }catch(e){ if(e && e.name !== 'AbortError') $('r_esito').textContent = 'Condivisione non riuscita: usa Copia testo.'; } }
@@ -1333,7 +1341,7 @@ function avvia(){
     if(t && !manuale){ $('p_tipo').value = t; stato.pTipoDaMenu = t; } };
   $('tipo_m').addEventListener('input', daMenu); $('tipo_m').addEventListener('change', daMenu);
   $('dyn').addEventListener('input', () => { if($('tipo_m').value !== '' && leggiNum($('dyn').value) !== +$('tipo_m').value) $('tipo_m').value = ''; });
-  $('r_copia').addEventListener('click', copiaRiepilogo); $('r_condividi').addEventListener('click', condividiRiepilogo); $('r_stampa').addEventListener('click', () => window.print()); $('r_salva').addEventListener('click', () => { const nome = $('r_nome').value.trim(); if(nome && leggiCasi().some(c => c.nome === nome)) conferma($('r_salva'), 'Sovrascrivi «' + nome + '»?', salvaCaso); else salvaCaso(); });
+  $('r_copia').addEventListener('click', copiaRiepilogo); $('r_condividi').addEventListener('click', condividiRiepilogo); $('r_stampa').addEventListener('click', stampaRiepilogo); $('r_salva').addEventListener('click', () => { const nome = $('r_nome').value.trim(); if(nome && leggiCasi().some(c => c.nome === nome)) conferma($('r_salva'), 'Sovrascrivi «' + nome + '»?', salvaCaso); else salvaCaso(); });
   $('r_nuovo').addEventListener('click', () => conferma($('r_nuovo'), 'Azzero tutto?', nuovoCaso));
   $('r_esporta').addEventListener('click', esportaCasi); $('r_importa').addEventListener('click', () => $('r_file').click());
   $('r_file').addEventListener('change', () => { const f = $('r_file').files[0]; if(!f) return; f.text().then(t => { const r = importaCasiDa(t); $('r_esito').textContent = r.errore ? `Importazione non riuscita: ${r.errore}.` : `Importati ${plur(r.nuovi, 'caso nuovo', 'casi nuovi')}, ${plur(r.aggiornati, 'aggiornato', 'aggiornati')}${r.scartati ? ', ' + plur(r.scartati, 'scartato', 'scartati') : ''}.`; $('r_file').value = ''; }); });
@@ -1640,6 +1648,7 @@ function autotest(){
   nuovoCaso(); $('peso').value = 12000; $('n_gamma').value = 'hd'; $('r_inc_faebi').checked = true; $('r_modo').value = 'relazione'; ricalcola();
   t('Q5: FAEBI-HD → «curva e tabella di pag. 41» senza ripetere la pagina', /curva e tabella di pag\. 41/.test(testoRiepilogo()) && !/pag\. 41, tabella di pag\. 41/.test(testoRiepilogo()), testoRiepilogo().match(/Frequenza naturale[^\n]*/)); $('r_modo').value = 'offerta'; $('n_gamma').value = 'std';
   t('Q5: nella riga scelta c\'è uno spazio prima di «scelto»', (() => { nuovoCaso(); $('peso').value = 2000; ricalcola(); const r = $('n_out').querySelector('.riga.sel'); return r && / proposto/.test(r.textContent); })());
+  t('stampa: il pulsante usa stampaRiepilogo (iPhone → Condividi, altrove window.print)', typeof stampaRiepilogo === 'function' && /iPhone\|iPad/.test(String(stampaRiepilogo)) && /window\.print\(\)/.test(String(stampaRiepilogo)));
   // giro 3: nuovo caso senza voci spuntate
   nuovoCaso(); t('nuovo caso: niente nel riepilogo finché non si sceglie', !$('r_inc_piastra').checked && /NESSUNA SOLUZIONE SCELTA/.test(testoRiepilogo()));
   ricalcola();
